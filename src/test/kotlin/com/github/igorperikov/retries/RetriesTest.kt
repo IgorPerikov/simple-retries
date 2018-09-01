@@ -7,7 +7,7 @@ import org.junit.jupiter.api.assertThrows
 import java.io.IOException
 
 class RetriesTest {
-    private val defaultAttempts = 3
+    private val defaultAttempts = DEFAULT_ATTEMPTS
 
     @Test
     fun `retryer configured with non-default attempts executes body proper amount of times`() {
