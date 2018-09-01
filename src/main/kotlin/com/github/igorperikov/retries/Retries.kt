@@ -3,23 +3,24 @@ package com.github.igorperikov.retries
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
 
+@PublishedApi
 internal const val DEFAULT_ATTEMPTS = 3
 
 /**
  * Retry [block] code [attempts] times.
  * Retry executes immediately on any [Exception].
- * [exceptions] specifies which exceptions should lead to retry.
+ * Exceptions which should lead to retry can be specified via [exceptions].
  * When retryer runs out of attempts, executes [fallback],
- * if fallback does not provided and [silent] mode disabled - throws [RetriesExceedException] with proper cause
+ * if fallback wasn't provided and [silent] mode disabled - throws [RetriesExceedException] with actual cause.
  */
-fun retry(
+inline fun retry(
     attempts: Int = DEFAULT_ATTEMPTS,
     exceptions: Set<KClass<out Exception>> = setOf(Exception::class),
     silent: Boolean = true,
-    fallback: (() -> Unit)? = null,
+    noinline fallback: (() -> Unit)? = null,
     block: () -> Unit
 ) {
-    require(attempts > 0) { "Retry attempts should be positive number, got=$attempts" }
+    require(attempts > 0) { "Attempts should be positive number, got=$attempts" }
     for (attempt in 1..attempts) {
         try {
             block()
@@ -39,7 +40,8 @@ fun retry(
     }
 }
 
-private fun exceptionNotSupported(e: Exception, supportedExceptions: Set<KClass<out Exception>>): Boolean {
+@PublishedApi
+internal fun exceptionNotSupported(e: Exception, supportedExceptions: Set<KClass<out Exception>>): Boolean {
     val thrownException = e::class
     for (supportedException in supportedExceptions) {
         if (supportedException.isSuperclassOf(thrownException)) return false
