@@ -3,7 +3,7 @@ package com.github.igorperikov.retries
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
 
-const val DEFAULT_ATTEMPTS = 3
+internal const val DEFAULT_ATTEMPTS = 3
 
 /**
  * Retry [block] code [attempts] times.
