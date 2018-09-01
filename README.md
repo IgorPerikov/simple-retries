@@ -1,5 +1,7 @@
 simple-retries
 ===
+[![codecov](https://codecov.io/gh/IgorPerikov/simple-retries/branch/master/graph/badge.svg)](https://codecov.io/gh/IgorPerikov/simple-retries)
+
 Zero-magic library for performing retries in your code :heart_eyes:
 
 ### Pleasant words from happy users:

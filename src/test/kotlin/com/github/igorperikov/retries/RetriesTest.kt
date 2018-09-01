@@ -7,7 +7,18 @@ import org.junit.jupiter.api.assertThrows
 import java.io.IOException
 
 class RetriesTest {
-    private val attempts = 3
+    private val defaultAttempts = DEFAULT_ATTEMPTS
+
+    @Test
+    fun `retryer configured with non-default attempts executes body proper amount of times`() {
+        var executions = 0
+        val attempts = 5
+        retry(attempts) {
+            executions++
+            throw RuntimeException()
+        }
+        assertThat(executions, equalTo(attempts))
+    }
 
     @Test
     fun `retryer cannot be configured with zero or less retry attempts`() {
@@ -22,7 +33,7 @@ class RetriesTest {
     @Test
     fun `exceptions-free code should be executed once`() {
         var executions = 0
-        retry(attempts) {
+        retry(defaultAttempts) {
             executions++
         }
         assertThat(executions, equalTo(1))
@@ -31,7 +42,7 @@ class RetriesTest {
     @Test
     fun `any exception should trigger attempts in default configuration`() {
         var executions = 0
-        retry(attempts) {
+        retry(defaultAttempts) {
             executions++
             when (executions) {
                 1 -> throw RuntimeException()
@@ -39,7 +50,7 @@ class RetriesTest {
                 else -> throw Exception()
             }
         }
-        assertThat(executions, equalTo(attempts))
+        assertThat(executions, equalTo(defaultAttempts))
     }
 
     @Test
@@ -54,27 +65,27 @@ class RetriesTest {
     @Test
     fun `when exception provided, throwing subclass exception should trigger retry`() {
         var executions = 0
-        retry(attempts, setOf(ParentException::class)) {
+        retry(defaultAttempts, setOf(ParentException::class)) {
             executions++
             throw ChildException()
         }
-        assertThat(executions, equalTo(attempts))
+        assertThat(executions, equalTo(defaultAttempts))
     }
 
     @Test
     fun `when exception provided, throwing this exception should trigger retry`() {
         var executions = 0
-        retry(attempts, setOf(ParentException::class)) {
+        retry(defaultAttempts, setOf(ParentException::class)) {
             executions++
             throw ParentException()
         }
-        assertThat(executions, equalTo(attempts))
+        assertThat(executions, equalTo(defaultAttempts))
     }
 
     @Test
     fun `when exception provided, throwing exception out of it's hierarchy should not trigger retry`() {
         var executions = 0
-        retry(attempts, setOf(IOException::class)) {
+        retry(defaultAttempts, setOf(IOException::class)) {
             executions++
             throw IllegalStateException()
         }

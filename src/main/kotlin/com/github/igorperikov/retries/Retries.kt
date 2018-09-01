@@ -3,6 +3,8 @@ package com.github.igorperikov.retries
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
 
+internal const val DEFAULT_ATTEMPTS = 3
+
 /**
  * Retry [block] code [attempts] times.
  * Retry executes immediately on any [Exception].
@@ -11,7 +13,7 @@ import kotlin.reflect.full.isSuperclassOf
  * if fallback does not provided and [silent] mode disabled - throws [RetriesExceedException] with proper cause
  */
 fun retry(
-    attempts: Int = 3,
+    attempts: Int = DEFAULT_ATTEMPTS,
     exceptions: Set<KClass<out Exception>> = setOf(Exception::class),
     silent: Boolean = true,
     fallback: (() -> Unit)? = null,
