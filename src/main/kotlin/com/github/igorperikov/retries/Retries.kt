@@ -4,35 +4,45 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
 
 /**
- * Retry [block] code [retries] times.
+ * Retry [block] code [attempts] times.
  * Retry executes immediately on any [Exception].
- * [failSilently]: if true then [RetriesExceedException] would not be thrown after failing all retries.
  * [exceptions] specifies which exceptions should lead to retry.
+ * When retryer runs out of attempts, executes [fallback],
+ * if fallback does not provided and [silent] mode disabled - throws [RetriesExceedException] with proper cause
  */
 fun retry(
-    retries: Int = 3,
+    attempts: Int = 3,
     exceptions: Set<KClass<out Exception>> = setOf(Exception::class),
-    failSilently: Boolean = true,
+    silent: Boolean = true,
+    fallback: (() -> Unit)? = null,
     block: () -> Unit
 ) {
-    if (retries <= 0) throw IllegalArgumentException("Retries should be positive number, got=$retries")
-    for (retriesRemained in retries - 1 downTo 0) {
+    require(attempts > 0) { "Retries should be positive number, got=$attempts" }
+    for (attempt in 1..attempts) {
         try {
             block()
             break
         } catch (e: Exception) {
-            if (!exceptionSupported(e, exceptions)) break
-            if (retriesRemained == 0 && !failSilently) throw RetriesExceedException()
+            if (exceptionNotSupported(e, exceptions)) break
+            if (attempt == attempts) {
+                if (fallback == null) {
+                    if (!silent) {
+                        throw RetriesExceedException(e)
+                    }
+                } else {
+                    fallback()
+                }
+            }
         }
     }
 }
 
-private fun exceptionSupported(e: Exception, exceptions: Set<KClass<out Exception>>): Boolean {
-    val eClass = e::class
-    for (exception in exceptions) {
-        if (exception.isSuperclassOf(eClass)) return true
+private fun exceptionNotSupported(e: Exception, supportedExceptions: Set<KClass<out Exception>>): Boolean {
+    val thrownException = e::class
+    for (supportedException in supportedExceptions) {
+        if (supportedException.isSuperclassOf(thrownException)) return false
     }
-    return false
+    return true
 }
 
-class RetriesExceedException : RuntimeException()
+class RetriesExceedException(cause: Throwable) : RuntimeException(cause)
