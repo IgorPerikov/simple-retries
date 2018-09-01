@@ -46,3 +46,7 @@ private fun exceptionNotSupported(e: Exception, supportedExceptions: Set<KClass<
 }
 
 class RetriesExceedException(cause: Throwable) : RuntimeException(cause)
+
+fun uncoveredFunction() {
+    println("doing something uncovered")
+}
