@@ -2,39 +2,72 @@ package com.github.igorperikov.retries
 
 import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.equalTo
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.gherkin.Feature
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import java.io.IOException
 
-object RetriesSpek : Spek({
-    Feature("Any-exception retry") {
-        Scenario("Block of code doesn't throw exception") {
-            var executions = 0
+class RetriesTest {
+    private val retries = 3
 
-            When("Executing") {
-                retry(retries = 3) {
-                    executions++
-                }
-            }
+    @Test
+    fun `exceptions-free code should be executed once`() {
+        var executions = 0
+        retry(retries) {
+            executions++
+        }
+        assertThat(executions, equalTo(1))
+    }
 
-            Then("Block of code executed only once") {
-                assertThat(executions, equalTo(1))
+    @Test
+    fun `any exception should trigger retries in default configuration`() {
+        var executions = 0
+        retry(retries) {
+            executions++
+            when (executions) {
+                1 -> throw IllegalArgumentException()
+                2 -> throw IOException()
+                else -> throw RuntimeException()
             }
         }
+        assertThat(executions, equalTo(retries))
+    }
 
-        Scenario("Block of code throws exception") {
-            val retries = 3
-            var executions = 0
-
-            When("Executing silently") {
-                retry(retries = retries, failSilently = true) {
-                    executions++
-                    throw RuntimeException()
-                }
-            }
-
-            Then("Block of code executes $retries times") {
-                assertThat(executions, equalTo(retries))
+    @Test
+    fun `non-silent execution should complete with RetriesExceedException`() {
+        assertThrows<RetriesExceedException> {
+            retry(failSilently = false) {
+                throw RuntimeException()
             }
         }
     }
-})
+
+    @Test
+    fun `when exception provided, throwing subclass exception should trigger retry`() {
+        var executions = 0
+        retry(retries, setOf(ParentException::class)) {
+            executions++
+            throw ChildException()
+        }
+        assertThat(executions, equalTo(retries))
+    }
+
+    @Test
+    fun `when exception provided, throwing this exception should trigger retry`() {
+        var executions = 0
+        retry(retries, setOf(ParentException::class)) {
+            executions++
+            throw ParentException()
+        }
+        assertThat(executions, equalTo(retries))
+    }
+
+    @Test
+    fun `when exception provided, throwing exception out of it's hierarchy should not trigger retry`() {
+        var executions = 0
+        retry(retries, setOf(IllegalArgumentException::class)) {
+            executions++
+            throw IllegalStateException()
+        }
+        assertThat(executions, equalTo(1))
+    }
+}

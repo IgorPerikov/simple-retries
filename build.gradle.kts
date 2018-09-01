@@ -9,18 +9,18 @@ version = "0.0.1"
 
 repositories {
     mavenCentral()
-    maven("https://dl.bintray.com/spekframework/spek-dev")
 }
+
+val junit5Version by extra { "5.1.1" }
+val hamkrestVersion by extra { "1.6.0.0" }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    testImplementation("com.natpryce", "hamkrest", "1.6.0.0")
-    testImplementation("org.spekframework.spek2", "spek-dsl-jvm", "2.0.0-alpha.1")
-        .exclude("org.jetbrains.kotlin")
-    testRuntimeOnly("org.spekframework.spek2", "spek-runner-junit5", "2.0.0-alpha.1")
-        .exclude("org.jetbrains.kotlin")
+    testImplementation("com.natpryce", "hamkrest", hamkrestVersion)
+    testImplementation("org.junit.jupiter", "junit-jupiter-api", junit5Version)
+    testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", junit5Version)
 }
 
 tasks.withType<KotlinCompile> {
@@ -29,6 +29,6 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform {
-        includeEngines("spek2")
+        includeEngines("junit-jupiter")
     }
 }
