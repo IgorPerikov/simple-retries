@@ -17,7 +17,7 @@ fun retry(
     fallback: (() -> Unit)? = null,
     block: () -> Unit
 ) {
-    require(attempts > 0) { "Retries should be positive number, got=$attempts" }
+    require(attempts > 0) { "Retry attempts should be positive number, got=$attempts" }
     for (attempt in 1..attempts) {
         try {
             block()

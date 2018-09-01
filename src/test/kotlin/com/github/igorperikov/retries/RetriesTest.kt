@@ -10,6 +10,16 @@ class RetriesTest {
     private val attempts = 3
 
     @Test
+    fun `retryer cannot be configured with zero or less retry attempts`() {
+        assertThrows<IllegalArgumentException> {
+            retry(0) {  }
+        }
+        assertThrows<IllegalArgumentException> {
+            retry(-1) {  }
+        }
+    }
+
+    @Test
     fun `exceptions-free code should be executed once`() {
         var executions = 0
         retry(attempts) {
@@ -64,7 +74,7 @@ class RetriesTest {
     @Test
     fun `when exception provided, throwing exception out of it's hierarchy should not trigger retry`() {
         var executions = 0
-        retry(attempts, setOf(IllegalArgumentException::class)) {
+        retry(attempts, setOf(IOException::class)) {
             executions++
             throw IllegalStateException()
         }
