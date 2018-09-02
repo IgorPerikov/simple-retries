@@ -16,6 +16,7 @@ internal const val DEFAULT_ATTEMPTS = 3
 inline fun retry(
     attempts: Int = DEFAULT_ATTEMPTS,
     exceptions: Set<KClass<out Exception>> = setOf(Exception::class),
+    waitStrategy: WaitStrategy = ImmediateRetryStrategy(),
     silent: Boolean = true,
     noinline fallback: (() -> Unit)? = null,
     block: () -> Unit
@@ -37,6 +38,7 @@ inline fun retry(
                 }
             }
         }
+        waitStrategy.waitNextRetry(attempt)
     }
 }
 
