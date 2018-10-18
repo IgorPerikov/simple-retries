@@ -85,9 +85,11 @@ class RetriesTest {
     @Test
     fun `when exception provided, throwing exception out of it's hierarchy should not trigger retry`() {
         var executions = 0
-        retry(defaultAttempts, setOf(IOException::class)) {
-            executions++
-            throw IllegalStateException()
+        assertThrows<IllegalStateException> {
+            retry(defaultAttempts, setOf(IOException::class)) {
+                executions++
+                throw IllegalStateException()
+            }
         }
         assertThat(executions, equalTo(1))
     }

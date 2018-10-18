@@ -27,7 +27,7 @@ inline fun retry(
             block()
             break
         } catch (e: Exception) {
-            if (exceptionNotSupported(e, exceptions)) break
+            if (exceptionNotSupported(e, exceptions)) throw e
             if (attempt == attempts) {
                 if (fallback == null) {
                     if (!silent) {
